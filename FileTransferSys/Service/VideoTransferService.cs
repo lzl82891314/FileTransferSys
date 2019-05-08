@@ -74,7 +74,15 @@ namespace FileTransferSys
             }
 
             string outputFilePath = Path.Combine(outputPath, CommonService.GetFileName(filePath));
-            File.Move(filePath, outputFilePath);
+            if (!File.Exists(outputFilePath))
+            {
+                File.Move(filePath, outputFilePath);
+            }
+            else
+            {
+                string fileNewName = CommonService.GetFileName(filePath).Split('.')[0] + new Random().Next(0, 9999) + CommonService.GetFileExtension(filePath);
+                File.Move(filePath, Path.Combine(outputPath, fileNewName));
+            }
         }
 
         private static class InstanceClass

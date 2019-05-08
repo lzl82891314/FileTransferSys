@@ -101,7 +101,11 @@ namespace FileTransferSys
             foreach (var item in moveList)
             {
                 string fileName = CommonService.GetFileName(item);
-                File.Move(item, Path.Combine(outputTruePath, fileName));
+                var fileOutputPath = Path.Combine(outputTruePath, fileName);
+                if (!File.Exists(fileOutputPath))
+                {
+                    File.Move(item, fileOutputPath);
+                }
             }
         }
 
