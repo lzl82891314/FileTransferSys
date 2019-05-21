@@ -11,7 +11,33 @@ namespace FileTransferSys
 
         private ObserveHandler()
         {
-
+            var interfaceType = typeof(ITransferEventHandler);
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var assembly in assemblies)
+            {
+                var assemblyTypes = assembly.GetTypes();
+                if (assemblyTypes == null || assemblyTypes.Length == 0)
+                {
+                    continue;
+                }
+                foreach (var assemblyType in assemblyTypes)
+                {
+                    if (interfaceType.IsAssignableFrom(assemblyType))
+                    {
+                        var method = assemblyType.GetMethod("GetInstance");
+                        if (method == null)
+                        {
+                            continue;
+                        }
+                        var invokeResult = method.Invoke(null, null);
+                        if (invokeResult == null || !(invokeResult is ITransferEventHandler))
+                        {
+                            continue;
+                        }
+                        OnTransfer += (invokeResult as ITransferEventHandler).TransferEvent;
+                    }
+                }
+            }
         }
 
         public static ObserveHandler GetInstance()
@@ -19,13 +45,18 @@ namespace FileTransferSys
             return InstanceClass.Instance;
         }
 
-        public Task Transfer(string fileType)
+        public void Transfer(string fileType, string filePath, string outputPath)
         {
-            var task = Task.Factory.StartNew(() =>
-            {
-                OnTransfer?.Invoke(fileType, "", "");
-            });
-            return task;
+            //普通调用
+            OnTransfer?.Invoke(fileType, filePath, outputPath);
+
+            #region 并行foreach
+            //var invokeList = OnTransfer.GetInvocationList();
+            //Parallel.ForEach(invokeList, invoker =>
+            //{
+            //    invoker.DynamicInvoke(fileType, filePath, outputPath);
+            //});
+            #endregion
         }
 
         private static class InstanceClass

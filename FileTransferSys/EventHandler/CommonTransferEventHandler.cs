@@ -37,7 +37,7 @@ namespace FileTransferSys
         {
             if (!IsCanTransfer(fileType))
             {
-                return null;
+                return Task.CompletedTask;
             }
             return Task.Factory.StartNew(() => _transferService.FileTransfer(filePath, outputPath));
         }
